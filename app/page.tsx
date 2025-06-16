@@ -1,32 +1,39 @@
-import type { Metadata } from "next";
-import { Bricolage_Grotesque } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
-import "./globals.css";
-import Navbar from "@/components/Navbar";
+import CompanionCard from "@/components/CompanionCard";
+import CompanionsList from "@/components/CompanionsList";
+import CTA from "@/components/CTA";
+import {recentSessions} from "@/constants";
+import {getAllCompanions, getRecentSessions} from "@/lib/actions/companion.actions";
+import {getSubjectColor} from "@/lib/utils";
 
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
-  subsets: ["latin"],
-});
+const Page = async () => {
+    const companions = await getAllCompanions({ limit: 3 });
+    const recentSessionsCompanions = await getRecentSessions(10);
 
-export const metadata: Metadata = {
-  title: "Li.AI.se",
-  description: "Real-time AI Teaching Platform",
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${bricolage.variable} antialiased`}>
-        <ClerkProvider appearance={{ variables: { colorPrimary: '#fe5933' }} }>
-          <Navbar />
-          {children}
-        </ClerkProvider>
-      </body>
-    </html>
-  );
+    <main>
+      <h1>Popular Companions</h1>
+
+        <section className="home-section">
+            {companions.map((companion) => (
+                <CompanionCard
+                    key={companion.id}
+                    {...companion}
+                    color={getSubjectColor(companion.subject)}
+                />
+            ))}
+
+        </section>
+
+        <section className="home-section">
+            <CompanionsList
+                title="Recently completed sessions"
+                companions={recentSessionsCompanions}
+                classNames="w-2/3 max-lg:w-full"
+            />
+            <CTA />
+        </section>
+    </main>
+  )
 }
+
+export default Page
